@@ -1,15 +1,43 @@
-# Benchmark harness (pilot)
+# eduverify
 
-30 items, built deterministically by `prepare_data.py` (seed 0):
-- 15 charts from ChartQA test tables (source = the table; ground truth = the table).
-- 15 diagrams from AI2D (foodChainsWebs 8, lifeCycles 7). Source = the label list only; ground truth = AI2D's directed arrows between labeled blobs. Edges must come from the model's domain knowledge, so edge errors here measure conceptual hallucination.
+The LLM proposes a structured spec (IR). Everything else is deterministic: schema and number checks, rendering with vector text, OCR/VLM read-back, and a pass / repair / abstain verdict.
 
-Conditions
-- `direct`: a text-to-image model draws the image (`direct_gen.py`; SDXL on Colab, Gemini or Grok when keys exist). Scored only by reader VLM read-back.
-- `code`: LLM writes the spec, deterministic renderer draws it, no checks, no repair.
-- `verified`: `code` + rule checks + OCR + VLM read-back + up to 2 repairs; abstains when errors remain.
+```
+eduverify render examples/chart.json -o out/            # IR -> image + manifest
+eduverify verify examples/chart.json --source src.txt   # rule checks only
+eduverify generate "Water cycle diagram" --provider ollama --model qwen3-vl:8b -o out/
+```
+Providers: `ollama` (local), `gemini` (GEMINI_API_KEY), `grok` (XAI_API_KEY). Keys are read from the environment only.
 
-Metrics: exact-match rate among shown items, exact over all items, silent-error rate (shown but wrong, over all items), coverage, primary recall/edge-F1, image-level read-back exactness.
-Caveats: (1) the read-back reader is the same VLM family used inside `verified`, so image-level scores for verified/code are a reader-agreement check, not an independent ground truth; spec-vs-GT is the primary metric for them. (2) Ground truth for diagrams inherits AI2D annotation errors. (3) Single generator, single seed = pilot only.
+## Run the demo
 
-Run: `python bench/run.py --run NAME --conditions code,verified --gen ollama:qwen2.5-coder:7b --reader ollama:qwen3-vl:8b`, then `python bench/summarize.py NAME`. Resumable.
+Setup (once):
+```
+cd eduverify
+source .venv/bin/activate      # or: pip install -e .
+```
+
+**1. A pass**
+```
+eduverify render examples/chart.json -o out/chart
+open out/chart/visual.png
+```
+Prints `verdict: pass` (exit 0) and writes `visual.png`, `visual.svg` and `report.json`.
+
+**2. An abstain**
+```
+eduverify render examples/diagram.json --source examples/source.txt -o out/diagram
+```
+Prints `verdict: abstain` (exit 1) and writes no image. The diagram labels are not in `examples/source.txt`, so each one is reported as `label_not_in_source`. The tool refuses to ship a visual it cannot verify. Fix the spec or the source and rerun to get a pass.
+
+**3. Rule checks only** (instant)
+```
+eduverify verify examples/chart.json
+```
+
+**4. Full run from a request** (needs a model)
+```
+ollama pull qwen3-vl:8b-instruct
+eduverify generate "Water cycle diagram" --kind diagram --provider ollama --model qwen3-vl:8b-instruct -o out/gen
+```
+Use the `-instruct` model: the plain `qwen3-vl:8b` is a thinking model and returns empty output here. Add `--vlm ollama:qwen3-vl:8b-instruct` to `render` for the image read-back check. OCR read-back needs `tesseract` (`brew install tesseract`); use `--no-ocr` to skip it.

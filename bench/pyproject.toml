@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eduverify"
+version = "0.1.0"
+description = "Verified generation of educational charts, diagrams and infographics from structured specs"
+requires-python = ">=3.10"
+dependencies = ["pydantic>=2", "matplotlib>=3.7", "numpy", "pillow", "httpx"]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+eduverify = "eduverify.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
