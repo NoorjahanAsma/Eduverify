@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: eduverify
+Version: 0.1.0
+Summary: Verified generation of educational charts, diagrams and infographics from structured specs
+Requires-Python: >=3.10
+Requires-Dist: pydantic>=2
+Requires-Dist: matplotlib>=3.7
+Requires-Dist: numpy
+Requires-Dist: pillow
+Requires-Dist: httpx
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"

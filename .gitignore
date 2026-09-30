@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.egg-info/
+out/
+.venv/
+.pytest_cache/
+bench/data/
+bench/direct_images/
+results/

@@ -1,0 +1,1 @@
+{"kind":"diagram","title":"Water cycle","nodes":[{"id":"e","label":"Evaporation"},{"id":"c","label":"Condensation"},{"id":"p","label":"Precipitation"},{"id":"r","label":"Runoff"}],"edges":[{"src":"e","dst":"c"},{"src":"c","dst":"p"},{"src":"p","dst":"r"},{"src":"r","dst":"e"}]}
